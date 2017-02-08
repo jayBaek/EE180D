@@ -15,8 +15,11 @@ from scipy import signal
 import math
 from scipy.fftpack import *
 import scipy
+import pymysql
+
 import pylab
 from mpl_toolkits.mplot3d import Axes3D
+
 #loading running data 1
 
 def load_data(path):
@@ -133,14 +136,14 @@ def get_avgVelocity(data):
     result = get_peak(sample)
     return result
                 
-avg_vel_running = get_sample(filtered_running)
-avg_vel_running1 = get_sample(filtered_running1)  
-avg_vel_running2 = get_sample(filtered_running2) 
-avg_vel_running3 = get_sample(filtered_running3)      
-avg_vel_walking1 = get_sample(filtered_walking1) 
-avg_vel_walking2 = get_sample(filtered_walking2)
-avg_vel_walking3 = get_sample(filtered_walking3)     
-avg_vel_test = get_sample(filtered_test)      
+avg_vel_running = get_avgVelocity(filtered_running)
+avg_vel_running1 = get_avgVelocity(filtered_running1)  
+avg_vel_running2 = get_avgVelocity(filtered_running2) 
+avg_vel_running3 = get_avgVelocity(filtered_running3)      
+avg_vel_walking1 = get_avgVelocity(filtered_walking1) 
+avg_vel_walking2 = get_avgVelocity(filtered_walking2)
+avg_vel_walking3 = get_avgVelocity(filtered_walking3)     
+avg_vel_test = get_avgVelocity(filtered_test)      
 
 def get_separate_sequence(data):
     sample = []
