@@ -5,6 +5,7 @@ Created on Sat Feb  4 22:21:55 2017
 
 @author: JayBaek
 """
+#problem : how to combine with data and energy
 
 import siganalysis as sa
 import numpy as np
@@ -20,35 +21,105 @@ import pymysql
 import pylab
 from mpl_toolkits.mplot3d import Axes3D
 
-#loading running data 1
-
+# Load data from path
 def load_data(path):
     time, Gyro_x, Gyro_y, Gyro_z, Acc_x, Acc_y, Acc_z, Mag_x, Mag_y, Mag_z = np.loadtxt(path, delimiter=',', unpack=True)
     return time, Gyro_x, Gyro_y, Gyro_z, Acc_x, Acc_y, Acc_z
 
-path = '/Users/JayBaek/EE180D/data/running_test1.csv'
+path = '/Users/JayBaek/Documents/Github/EE180D/data/running_test1.csv'
 time_running, Gyro_x_running, Gyro_y_running, Gyro_z_running, Acc_x_running, Acc_y_running, Acc_z_running = load_data(path)
 
-path1 = '/Users/JayBaek/EE180D/data/running_test2.csv'
+path1 = '/Users/JayBaek/Documents/Github/EE180D/data/running_test2.csv'
 time_running1, Gyro_x_running1, Gyro_y_running1, Gyro_z_running1, Acc_x_running1, Acc_y_running1, Acc_z_running1 = load_data(path1)
 
-path2 = '/Users/JayBaek/EE180D/data/running_test3.csv'
+path2 = '/Users/JayBaek/Documents/Github/EE180D/data/running_test3.csv'
 time_running2, Gyro_x_running2, Gyro_y_running2, Gyro_z_running2, Acc_x_running2, Acc_y_running2, Acc_z_running2 = load_data(path2)
 
-path3 = '/Users/JayBaek/EE180D/data/running_test4.csv'
+path3 = '/Users/JayBaek/Documents/Github/EE180D/data/running_test4.csv'
 time_running3, Gyro_x_running3, Gyro_y_running3, Gyro_z_running3, Acc_x_running3, Acc_y_running3, Acc_z_running3 = load_data(path3)
 
-path4 = '/Users/JayBaek/EE180D/data/walking_test1.csv'
+path4 = '/Users/JayBaek/Documents/Github/EE180D/data/walking_test1.csv'
 time_walking1, Gyro_x_walking1, Gyro_y_walking1, Gyro_z_walking1, Acc_x_walking1, Acc_y_walking1, Acc_z_walking1 = load_data(path4)
 
-path5 = '/Users/JayBaek/EE180D/data/walking_test2.csv'
+path5 = '/Users/JayBaek/Documents/Github/EE180D/data/walking_test2.csv'
 time_walking2, Gyro_x_walking2, Gyro_y_walking2, Gyro_z_walking2, Acc_x_walking2, Acc_y_walking2, Acc_z_walking2 = load_data(path5)
 
-path6 = '/Users/JayBaek/EE180D/data/walking_test3.csv'
+path6 = '/Users/JayBaek/Documents/Github/EE180D/data/walking_test3.csv'
 time_walking3, Gyro_x_walking3, Gyro_y_walking3, Gyro_z_walking3, Acc_x_walking3, Acc_y_walking3, Acc_z_walking3 = load_data(path6)
 
-path7 = '/Users/JayBaek/EE180D/data/sample_foot3.csv'
+path7 = '/Users/JayBaek/Documents/Github/EE180D/data/sample_foot3.csv'
 time_test, Gyro_x_test, Gyro_y_test, Gyro_z_test, Acc_x_test, Acc_y_test, Acc_z_test= load_data(path7)
+
+# Conversion class for mean, max, min, std, and energy value
+class conversion():
+    def __init__(self, time, x, y, z, x1, y1, z1):
+        self.time = time
+        self.Gyro_x = x
+        self.Gyro_y = y
+        self.Gyro_z = z
+        self.Acc_x  = x1
+        self.Acc_y = y1
+        self.Acc_z = z1
+    
+    def magnitude(self, string):
+        if string == "Acc":
+            m = np.sqrt(self.Acc_x*self.Acc_x + self.Acc_y*self.Acc_y + self.Acc_z*self.Acc_z)
+            return m
+        if string == "Gyro":
+            m = np.sqrt(self.Gyro_x*self.Gyro_x + self.Gyro_y*self.Gyro_y + self.Gyro_z*self.Gyro_z)
+            return m
+            
+    def feature(self, string, magnitude):
+        fftsize = 256
+        overlap = 4
+        temp = []
+        size = []
+        hop = fftsize / overlap
+        print 'size: %s' %(len(magnitude)-fftsize)
+        for i in range(0, len(magnitude)-fftsize, hop):
+            if string == "mean":
+                temp.append(np.mean(magnitude[i:i+fftsize]))
+            if string == "max":
+                temp.append(np.max(magnitude[i:i+fftsize]))
+            if string == "min":
+                temp.append(np.min(magnitude[i:i+fftsize]))
+            if string == "std":
+                temp.append(np.std(magnitude[i:i+fftsize]))
+            if string == "energy":
+                temp.append(np.sum(np.power(magnitude[i:i+fftsize],2)))
+        for i in range (len(temp)):
+            size.append(i)
+        return temp, size
+        
+    def get_value(self, string, string1):
+        if string == "Acc":
+            m = self.magnitude(string)
+            return self.feature(string1, m)
+        if string == "Gyro":
+            m = self.magnitude(string)
+            return self.feature(string1, m)
+            
+#class plot():
+#    def __init__(self, column, row):
+#        self.column = column
+#        self.row = row
+#    def draw(self, x, y, color):
+#        plt.figure(figsize=(8,10))
+#        plt.tight_layout()
+#        plt.plot(x, y, color)
+
+            
+a = conversion(time_running, Gyro_x_running, Gyro_y_running, Gyro_z_running, Acc_x_running, Acc_y_running, Acc_z_running)
+energy_ruuning, size_running = a.get_value("Acc", "energy")
+
+#m1, size1 = a.get_value("Acc", "min")
+
+#plt.figure(figsize=(8,10))
+#plt.subplot(511)
+#plt.tight_layout() #for bigger layout
+#plt.subplots_adjust(hspace = 0.45)
+#plt.plot(size, m, 'r')
+#plt.plot(size1, m1, 'b')
 
 
 #conversion to velocity
@@ -248,31 +319,37 @@ def remove_file(path):
     if os.path.exists(path):
         os.remove(path)
 
-def data_save(data, path, identifier):
-    path_check = '/Users/JayBaek/Desktop/' + path
-    print path_check
-    remove_file(path_check)
+def data_save(data, path):
+#    path_check = '/Users/JayBaek/Desktop/' + path
+#    print path_check
+#    remove_file(path_check)
 #    remove_file(path)
     # for running
-    if (identifier == 0):
-        for i in range (len(data)):
-            saveFile = open(path, 'a')
-            saveFile.write(str(data[i]))
-            saveFile.write('\n')
-        saveFile.close()
-    if (identifier == 1):
-        for i in range (len(data)):
-            saveFile = open(path, 'a')
-            saveFile.write(str(data[i]))
-            saveFile.write('\n')
-        saveFile.close()
-
+#    if (identifier == 0):
+#        for i in range (len(data)):
+#            saveFile = open(path, 'a')
+#            saveFile.write(str(data[i]))
+#            saveFile.write('\n')
+#        saveFile.close()
+#    if (identifier == 1):
+#        for i in range (len(data)):
+#            saveFile = open(path, 'a')
+#            saveFile.write(str(data[i]))
+#            saveFile.write('\n')
+#        saveFile.close()
+    for i in range (len(data)):
+        saveFile = open(path, 'a')
+        saveFile.write(str(data[i]))
+        saveFile.write('\n')
+    saveFile.close()
     
 #identifier (running = 0, walking = 1)
 #need to fix below
-#data_save(avg_vel_running, 'running.csv', 0)
-#data_save(avg_vel_running1, 'running1.csv', 0)
-#data_save(avg_vel_running2, 'running2.csv', 1)
-#data_save(avg_vel3, 'walking1.csv', 1)
-#data_save(avg_vel4, 'walking2.csv', 1)
-    
+data_save(avg_vel_running, 'running.csv')
+data_save(avg_vel_running1, 'running1.csv')
+data_save(avg_vel_running2, 'running2.csv')
+data_save(avg_vel_running3, 'running3.csv')
+data_save(avg_vel_walking1, 'walking1.csv')
+data_save(avg_vel_walking2, 'walking2.csv')
+data_save(avg_vel_walking3, 'walking3.csv')
+
